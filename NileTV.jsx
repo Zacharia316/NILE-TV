@@ -26,18 +26,27 @@ const HLS_CFG = {
   enableWorker: false,
 };
 
-// ─── Fetch with CORS proxy fallback chain ─────────────────────────────────────
 async function fetchWithFallback(url) {
+  // Try direct first — iptv-org has open CORS
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    if (res.ok) {
+      const text = await res.text();
+      if (text.includes("#EXTM3U")) return text;
+    }
+  } catch {}
+
+  // Then try proxies
   for (const proxy of PROXIES) {
     try {
       const res = await fetch(proxy(url), { signal: AbortSignal.timeout(12000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error();
       const text = await res.text();
       if (text.includes("#EXTM3U")) return text;
-    } catch { /* try next proxy */ }
+    } catch {}
   }
-  throw new Error("All proxies failed");
-}
+  throw new Error("All sources failed");
+                                             }
 
 // ─── M3U Parser ──────────────────────────────────────────────────────────────
 function parseM3U(raw) {
