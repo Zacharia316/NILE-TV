@@ -60,7 +60,7 @@ function parseM3U(raw) {
         logo:  (lines[i].match(/tvg-logo="([^"]*)"/i)    || [])[1]?.trim() || "",
       };
     } else if (lines[i].startsWith("http") && meta.name) {
-      out.push({ uid: `${meta.name}-${id++}`, ...meta, url: lines[i] });
+      out.push({ uid: `${meta.name}-${lines[i].slice(-20)}`, ...meta, url: lines[i] });
       meta = {};
     }
   }
